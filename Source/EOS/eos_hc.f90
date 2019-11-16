@@ -241,7 +241,7 @@ module eos_module
 
       subroutine iterate_ne_vec(z, U, t, nh, ne, nh0, nhp, nhe0, nhep, nhepp, veclen)
 
-      use atomic_rates_module, ONLY: this_z, YHELIUM, BOLTZMANN, MPROTON, TCOOLMAX_R
+      use atomic_rates_module, ONLY: this_z, YHELIUM, BOLTZMANN, MPROTON, TCOOLMAX_R, minxe
       use meth_params_module, only: gamma_minus_1
       use amrex_error_module, only: amrex_abort
 
@@ -377,6 +377,11 @@ module eos_module
          if (ii .gt. 15) &
             STOP 'iterate_ne_vec(): No convergence in Newton-Raphson!'
 
+      enddo
+
+      ! Adjust minimum electron fraction to be the freeze-out from recombination (computed by RECFAST)
+      do i = 1, veclen
+         ne(i) = max(ne(i),minxe)
       enddo
 
       ! Get rates for the final ne
