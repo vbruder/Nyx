@@ -25,6 +25,10 @@ module atomic_rates_module
   real(rt), dimension(:), allocatable, private :: rggh0, rgghe0, rgghep
   real(rt), dimension(:), allocatable, private :: reh0, rehe0, rehep
 
+  ! Pre-reionization electron fraction (from RECFAST output)
+  integer, private :: NRFFILE
+  real(rt), dimension(:), allocatable, private :: rfz, rfx, rft
+
   ! Other rates (from equations)
   integer, parameter, public :: NCOOLTAB=2000
   real(rt), dimension(NCOOLTAB+1), public :: AlphaHp, AlphaHep, AlphaHepp, Alphad
@@ -33,6 +37,7 @@ module atomic_rates_module
   real(rt), dimension(NCOOLTAB+1), public :: RecHp, RecHep, RecHepp
 
   real(rt), public, save :: this_z, ggh0, gghe0, gghep, eh0, ehe0, ehep
+  real(rt), public, save :: minxe
  
   real(rt), parameter, public :: TCOOLMIN = 0.0d0, TCOOLMAX = 9.0d0  ! in log10
   real(rt), parameter, public :: TCOOLMIN_R = 10.0d0**TCOOLMIN, TCOOLMAX_R = 10.0d0**TCOOLMAX
@@ -163,6 +168,26 @@ module atomic_rates_module
          end do
          close(11)
 
+         open(unit=13, file='RECFAST', status='old')
+         if (amrex_pd_ioprocessor()) then
+            print*, 'TABULATE_NELEC: Electron fraction file is defaulted to "RECFAST".'
+         endif
+
+         ! Read in pre-reionization electron fraction from RECFAST output file
+         NRFFILE = 0
+         do
+            read(13,*,end=12) tmp, tmp, tmp
+            NRFFILE = NRFFILE + 1
+         end do
+         12 rewind(13)
+
+         allocate( rfz(NRFFILE), rfx(NRFFILE), rft(NRFFILE) )
+
+         do i = 1, NRFFILE
+            read(13,*) rfz(i), rfx(i), rft(i)
+         end do
+         close(13)
+
          ! Initialize cooling tables
          t = 10.0d0**TCOOLMIN
          if (Katz96) then
@@ -287,6 +312,21 @@ module atomic_rates_module
       this_z = z
       z_vode = z
       lopz   = dlog10(1.0d0 + z)
+
+      if (this_z .le. rfz(1)) then
+         j = 1
+      else
+         do i = 2, NRFFILE
+            if (this_z .lt. rfz(i)) then
+               j = i-1
+               exit
+            endif
+         enddo
+      endif
+
+      fact  = (this_z-rfz(j))/(rfz(j+1)-rfz(j))
+
+      minxe  = rfx(j) + (rfx(j+1)-rfx(j))*fact
 
       if (lopz .ge. lzr(NCOOLFILE)) then
          ggh0  = 0.0d0
