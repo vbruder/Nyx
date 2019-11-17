@@ -379,7 +379,7 @@ module eos_module
 
       enddo
 
-      ! Adjust minimum electron fraction to be the freeze-out from recombination (computed by RECFAST)
+      ! Adjust minimum electron fraction to be the freeze-out from recombination computed by RECFAST
       do i = 1, veclen
          ne(i) = max(ne(i),minxe)
       enddo
@@ -520,7 +520,7 @@ module eos_module
       subroutine iterate_ne(JH, JHe, z, U, t, nh, ne, nh0, nhp, nhe0, nhep, nhepp)
 
       use amrex_error_module, only: amrex_abort, amrex_error
-      use atomic_rates_module, only: this_z, YHELIUM
+      use atomic_rates_module, only: this_z, YHELIUM, minxe
 
       integer :: i
 
@@ -577,6 +577,9 @@ module eos_module
          if (i .gt. 15) exit
 
       enddo
+
+      ! Adjust minimum electron fraction to be the freeze-out from recombination computed by RECFAST
+      ne = max(ne,minxe)
 
       ! Get rates for the final ne
       call ion_n(JH, JHe, U, nh, ne, nhp, nhep, nhepp, t)
