@@ -728,6 +728,9 @@ Nyx::init_santa_barbara (int init_sb_vels)
     BL_PROFILE("Nyx::init_santa_barbara()");
     Real cur_time = state[State_Type].curTime();
     Real a = old_a;
+    Real redshift;
+    ParmParse pp("nyx");
+    pp.get("initial_z",redshift);
 
     amrex::Print() << "... time and comoving a when data is initialized at level " 
                    << level << " " << cur_time << " " << a << '\n';
@@ -739,7 +742,7 @@ Nyx::init_santa_barbara (int init_sb_vels)
  
         if ( (init_with_sph_particles == 0) && (frac_for_hydro != 1.0) ) {
             DMPC->MultiplyParticleMass(level, omfrac);
-	}
+        }
 
         Vector<std::unique_ptr<MultiFab> > particle_mf(1);
         if (init_sb_vels == 1)
@@ -762,7 +765,7 @@ Nyx::init_santa_barbara (int init_sb_vels)
         //    and velocity on the grid, we can go ahead and destroy them.
         if (init_with_sph_particles == 1) {
             delete SPHPC;
-	}
+        }
 
         for (int lev = parent->finestLevel()-1; lev >= 0; lev--)
         {
@@ -813,15 +816,16 @@ Nyx::init_santa_barbara (int init_sb_vels)
 
         if (inhomo_reion) init_zhi();
 
-        // Add the particle density to the gas density 
-        MultiFab::Add(S_new, *particle_mf[level], 0, Density, 1, S_new.nGrow());
+        // Add the particle density to the gas density
+        if (redshift < 999)
+            MultiFab::Add(S_new, *particle_mf[level], 0, Density, 1, S_new.nGrow());
 
-        if (init_sb_vels == 1)
+        if (init_sb_vels == 1 && redshift < 999)
         {
             // Convert velocity to momentum
             for (int i = 0; i < BL_SPACEDIM; ++i) {
                MultiFab::Multiply(*particle_mf[level], *particle_mf[level], 0, 1+i, 1, 0);
-	    }
+            }
 
             // Add the particle momenta to the gas momenta (initially zero)
             MultiFab::Add(S_new, *particle_mf[level], 1, Xmom, BL_SPACEDIM, S_new.nGrow());
@@ -842,7 +846,7 @@ Nyx::init_santa_barbara (int init_sb_vels)
        if (use_const_species == 0) {
            for (int i = 0; i < NumSpec; ++i) {
                MultiFab::Divide(S_new, S_new, Density, FirstSpec+i, 1, 0);
-	   }
+           }
        }
     }
 
@@ -870,7 +874,7 @@ Nyx::init_santa_barbara (int init_sb_vels)
     if (use_const_species == 0) {
         for (int i = 0; i < NumSpec; ++i) {
             MultiFab::Multiply(S_new, S_new, Density, FirstSpec+i, 1, 0);
-	}
+        }
     }
 }
 #endif
