@@ -379,7 +379,7 @@ module eos_module
 
       enddo
 
-      ! Adjust minimum electron fraction to be the freeze-out from recombination (computed by RECFAST)
+      ! Adjust minimum electron fraction to be the freeze-out from recombination computed by RECFAST
       do i = 1, veclen
          ne(i) = max(ne(i),minxe)
       enddo
