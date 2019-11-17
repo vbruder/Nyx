@@ -295,7 +295,17 @@ void Nyx::initcosmo()
        {
           vel_fac[n] = len[n]*comoving_a*std::sqrt(comoving_OmM/pow(comoving_a,3)+comoving_OmL)*comoving_h*100;
 	  dis_fac[n] = len[n];
+           
+           // If starting at z >= 1000, no baryon contribution to Zeldovich
+           if (redshift > 999) {
+               vel_fac[n] *= (comoving_OmM-comoving_OmB)/comoving_OmM;
+               dis_fac[n] *= (comoving_OmM-comoving_OmB)/comoving_OmM;
+           }
        }
+        
+        
+            
+        
        //Compute particle mass
        Real simulationVolume  = len[0]*len[1]*len[2];
        Real  numberOfParticles = n_part[0] * n_part[1] * n_part[2];
@@ -384,7 +394,8 @@ void Nyx::initcosmo()
 
      	//copy density 
      	S_new.setVal(0.);
-     	S_new.copy(mf, baryon_den, Density, 1);
+        // If we start at z >= 1000, assume no initial baryon flucts
+     	if (redshift < 999) S_new.copy(mf, baryon_den, Density, 1);
      	S_new.plus(1,     Density, 1, S_new.nGrow());
      	S_new.mult(rhoB,  Density, 1, S_new.nGrow());
 
@@ -394,22 +405,26 @@ void Nyx::initcosmo()
 //      particle_mf[0]->mult(comoving_OmB / comoving_OmD);
 //      S_new.copy(*particle_mf[0], 0, Density, 1);
 
-     	//copy velocities...
-     	S_new.copy(mf, baryon_vx, Xmom, 3);
-
-        //...and "transform" to momentum
-     	S_new.mult(vel_fac[0], Xmom, 1, S_new.nGrow());
-     	MultiFab::Multiply(S_new, S_new, Density, Xmom, 1, S_new.nGrow());
-     	S_new.mult(vel_fac[1], Ymom, 1, S_new.nGrow());
-     	MultiFab::Multiply(S_new, S_new, Density, Ymom, 1, S_new.nGrow());
-     	S_new.mult(vel_fac[2], Zmom, 1, S_new.nGrow());
-        MultiFab::Multiply(S_new, S_new, Density, Zmom, 1, S_new.nGrow());
+        // (if starting at z >= 1000, baryons have drift velocity only)
+        if (redshift > 999) {
+            S_new.setVal(30.0, Xmom);
+            MultiFab::Multiply(S_new, S_new, Density, Xmom, 1, S_new.nGrow());
+        } else {
+            //copy velocities...
+            S_new.copy(mf, baryon_vx, Xmom, 3);
+            //...and "transform" to momentum
+            S_new.mult(vel_fac[0], Xmom, 1, S_new.nGrow());
+            MultiFab::Multiply(S_new, S_new, Density, Xmom, 1, S_new.nGrow());
+            S_new.mult(vel_fac[1], Ymom, 1, S_new.nGrow());
+            MultiFab::Multiply(S_new, S_new, Density, Ymom, 1, S_new.nGrow());
+            S_new.mult(vel_fac[2], Zmom, 1, S_new.nGrow());
+            MultiFab::Multiply(S_new, S_new, Density, Zmom, 1, S_new.nGrow());
+        }
 
         // Convert (rho X)_i to X_i before calling init_e_from_T
 //      if (use_const_species == 0)
 //          for (int i = 0; i < NumSpec; i++) 
 //              MultiFab::Divide(S_new, S_new, Density, FirstSpec+i, 1, 0);
-
         Real tempInit = 0.021*(1.0+redshift)*(1.0+redshift);
 
         int ns = S_new.nComp();
