@@ -404,8 +404,6 @@ void Nyx::initcosmo()
 //      Nyx::theDMPC()->AssignDensity(particle_mf);
 //      particle_mf[0]->mult(comoving_OmB / comoving_OmD);
 //      S_new.copy(*particle_mf[0], 0, Density, 1);
-        
-        amrex::Print() << "Made it to this good part...\n";
 
         // (if starting at z >= 1000, baryons have drift velocity only)
         if (redshift > 999) {
@@ -427,6 +425,7 @@ void Nyx::initcosmo()
 //      if (use_const_species == 0)
 //          for (int i = 0; i < NumSpec; i++) 
 //              MultiFab::Divide(S_new, S_new, Density, FirstSpec+i, 1, 0);
+
         Real tempInit;
         if (redshift > 999) tempInit = 2.725*(1+redshift); // at high-z, T = TCMB
         else tempInit = 184.1*(1+redshift)/101.0*(1+redshift)/101.0; // fixed Tadiab
