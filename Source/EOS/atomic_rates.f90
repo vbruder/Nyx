@@ -314,11 +314,11 @@ module atomic_rates_module
       z_vode = z
       lopz   = dlog10(1.0d0 + z)
 
-      if (this_z .le. rfz(1)) then
+      if (this_z .ge. rfz(1)) then
          j = 1
       else
          do i = 2, NRFFILE
-            if (this_z .lt. rfz(i)) then
+            if (this_z .ge. rfz(i)) then
                j = i-1
                exit
             endif
@@ -328,6 +328,7 @@ module atomic_rates_module
       fact  = (this_z-rfz(j))/(rfz(j+1)-rfz(j))
 
       minxe  = rfx(j) + (rfx(j+1)-rfx(j))*fact
+      !minxe = 0.0d0
 
       if (lopz .ge. lzr(NCOOLFILE)) then
          ggh0  = 0.0d0
