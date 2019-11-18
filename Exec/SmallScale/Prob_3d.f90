@@ -104,7 +104,9 @@
          do j = lo(2), hi(2)
          do i = lo(1), hi(1)
 
+            ! Start with a uniform baryon field
             state(i,j,k,URHO)    = mean_rhob
+            ! And a drift velocity
             state(i,j,k,UMX)     = 30.0d0*mean_rhob
             state(i,j,k,UMY:UMZ) = 0.0d0
 
@@ -117,8 +119,10 @@
                state(i,j,k,UFS+1) = (1.d0 - XHYDROGEN)
             end if
 
+            ! Initialize at RECFAST values.
+            ! Temp must be fudged due to mean molecular weight readjustment
             diag_eos(i,j,k,TEMP_COMP) = 2.725d0*(1.0d0 + z_in)
-            diag_eos(i,j,k,  NE_COMP) = 0.2884d0
+            diag_eos(i,j,k,  NE_COMP) = 0.2884d-1
 
             if (ZHI_COMP .gt. -1) then
                diag_eos(i,j,k, ZHI_COMP) = 7.5d0
