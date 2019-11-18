@@ -435,7 +435,7 @@ module eos_module
                                      TCOOLMIN, TCOOLMAX, NCOOLTAB, deltaT, &
                                      AlphaHp, AlphaHep, AlphaHepp, Alphad, &
                                      GammaeH0, GammaeHe0, GammaeHep, &
-                                     ggh0, gghe0, gghep
+                                     ggh0, gghe0, gghep, minxe
 
       integer, intent(in) :: vec_count
       integer, dimension(vec_count), intent(in) :: JH, JHe
@@ -491,6 +491,8 @@ module eos_module
       ! H+
       do i = 1, vec_count
         nhp(i) = 1.0d0 - ahp(i)/(ahp(i) + geh0(i) + ggh0ne(i))
+        ! Correct for recombination freeze out
+        nhp(i) = max(nhp(i),minxe)
       end do
 
       ! He+
@@ -598,7 +600,7 @@ module eos_module
                                      TCOOLMIN, TCOOLMAX, NCOOLTAB, deltaT, &
                                      AlphaHp, AlphaHep, AlphaHepp, Alphad, &
                                      GammaeH0, GammaeHe0, GammaeHep, &
-                                     ggh0, gghe0, gghep
+                                     ggh0, gghe0, gghep, minxe
 
       integer, intent(in) :: JH, JHe
       real(rt), intent(in   ) :: U, nh, ne
@@ -651,6 +653,8 @@ module eos_module
 
       ! H+
       nhp = 1.0d0 - ahp/(ahp + geh0 + ggh0ne)
+      ! Correct for recombination freeze out
+      nhp = max(nhp,minxe)
 
       ! He+
       if ((gehe0 + gghe0ne) .gt. smallest_val) then
