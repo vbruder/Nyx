@@ -35,15 +35,15 @@
       real(rt) :: delta(3), avg_den
 
       integer  :: i,j,k
-      real(rt) :: m_cell, V_cell 
+      real(rt) :: over_den
 
-      V_cell = delta(1)*delta(2)*delta(3)
+      over_den = avg_den * 8**(level+1)
 
+      ! Tag on regions of overdensity
       do k = lo(3), hi(3)
          do j = lo(2), hi(2)
             do i = lo(1), hi(1)
-               m_cell = den(i,j,k,1)*V_cell
-               if ( m_cell .gt. 3.5d9 ) then 
+               if ( den(i,j,k,1) .gt. over_den ) then
                   tag(i,j,k) = set
                endif
             enddo

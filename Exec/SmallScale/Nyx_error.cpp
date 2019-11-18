@@ -7,6 +7,8 @@ using namespace amrex;
 void
 Nyx::error_setup()
 {
+    err_list.add("total_density",1,ErrorRec::UseAverage,
+                 BL_FORT_PROC_CALL(TAG_OVERDENSITY, tag_overdensity));
 }
 
 void
