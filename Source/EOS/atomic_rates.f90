@@ -304,6 +304,7 @@ module atomic_rates_module
       subroutine fort_interp_to_this_z(z) bind(C, name='fort_interp_to_this_z')
 
       use vode_aux_module, only: z_vode
+      use reion_aux_module, only: zhi_flash, zheii_flash, flash_h, flash_he
 
       real(rt), intent(in) :: z
       real(rt) :: lopz, fact
@@ -313,11 +314,11 @@ module atomic_rates_module
       z_vode = z
       lopz   = dlog10(1.0d0 + z)
 
-      if (this_z .le. rfz(1)) then
+      if (this_z .ge. rfz(1)) then
          j = 1
       else
          do i = 2, NRFFILE
-            if (this_z .lt. rfz(i)) then
+            if (this_z .ge. rfz(i)) then
                j = i-1
                exit
             endif
@@ -327,6 +328,7 @@ module atomic_rates_module
       fact  = (this_z-rfz(j))/(rfz(j+1)-rfz(j))
 
       minxe  = rfx(j) + (rfx(j+1)-rfx(j))*fact
+      !minxe = 0.0d0
 
       if (lopz .ge. lzr(NCOOLFILE)) then
          ggh0  = 0.0d0
@@ -357,6 +359,22 @@ module atomic_rates_module
       eh0   = reh0(j)   + (reh0(j+1)-reh0(j))*fact
       ehe0  = rehe0(j)  + (rehe0(j+1)-rehe0(j))*fact
       ehep  = rehep(j)  + (rehep(j+1)-rehep(j))*fact
+
+      if (flash_h .eqv. .true.) then
+         if (this_z .ge. zhi_flash) then
+            ggh0  = 0.0d0
+            gghe0 = 0.0d0
+            eh0   = 0.0d0
+            ehe0  = 0.0d0
+         endif
+      endif
+
+      if (flash_he .eqv. .true.) then
+         if (this_z .ge. zheii_flash) then
+            gghep = 0.0d0
+            ehep = 0.0d0
+         endif
+      endif
 
       end subroutine fort_interp_to_this_z
 
