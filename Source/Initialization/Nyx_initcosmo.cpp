@@ -404,6 +404,8 @@ void Nyx::initcosmo()
 //      Nyx::theDMPC()->AssignDensity(particle_mf);
 //      particle_mf[0]->mult(comoving_OmB / comoving_OmD);
 //      S_new.copy(*particle_mf[0], 0, Density, 1);
+        
+        amrex::Print() << "Made it to this good part...\n";
 
         // (if starting at z >= 1000, baryons have drift velocity only)
         if (redshift > 999) {
