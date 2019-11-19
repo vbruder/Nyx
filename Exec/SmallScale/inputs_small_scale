@@ -67,7 +67,8 @@ geometry.prob_lo     =  0     0     0
 #Domain size in Mpc
 geometry.prob_hi     =  1.481481  1.481481  1.481481
 
-amr.n_cell           =  32  32  32
+<<<<<<< HEAD
+amr.n_cell           =  64  64  64 
 amr.max_grid_size    = 32
 #fabarray.mfiter_tile_size = 128 8 8
 fabarray.mfiter_tile_size = 1024000 8 8
@@ -109,7 +110,7 @@ nyx.do_dm_particles = 1
 #  "AsciiFile"        "Random"      "Cosmological"
 # >>>>>>>>>>>>>  PARTICLE INIT OPTIONS <<<<<<<<<<<<<<<<
 nyx.particle_init_type = BinaryFile
-nyx.binary_particle_file = 1Mpc_32_z1000.nyx.0
+nyx.binary_particle_file = 1Mpc_64_z1000.nyx.0
 particles.nparts_per_read = 16777216
 
 # >>>>>>>>>>>>>  PARTICLE MOVE OPTIONS <<<<<<<<<<<<<<<<
@@ -160,7 +161,8 @@ amr.plot_nfiles     = 1
 
 amr.plot_vars        = density xmom ymom zmom rho_e Temp phi_grav Ne
 amr.derive_plot_vars = particle_count particle_mass_density MachNumber
-nyx.plot_z_values   = 500.0 200.0 100.0 50.0 20.0 15.0 10.0 9.0 8.0 7.0
+nyx.plot_z_values   = 20.0 15.0 12.0 10.0 8.0 7.0 6.0
+
 
 # SENSEI in situ
 sensei.enabled = 0
