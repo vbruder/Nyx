@@ -46,9 +46,8 @@
                           u(i,j-1,k,UEDEN),u(i,j+1,k,UEDEN), &
                           u(i,j,k-1,UEDEN),u(i,j,k+1,UEDEN))
 
-           ! Reset (e from e) if it's greater than 0.01% of big E.
+           ! Reset (e from e) if it's greater than 0.1% of big E.
            if (rho_eint .gt. 0.d0 .and. ((rho_eint/u(i,j,k,UEDEN) .gt. 1e-3) .or. (rho_eint / max(rho_eden,u(i,j,k,UEDEN)) .gt. 1.d-1)) .and. interp .eq. 0) then
-           !if (rho_eint .gt. 0.d0 .and. rho_eint / max(rho_eden,u(i,j,k,UEDEN)) .gt. 1.d-3 .and. interp .eq. 0) then
 
               ! Create reset source so u(i,j,k,UEINT) = u(i,j,k,UEINT) + r(i,j,k) = rho_eint
                r(i,j,k) = rho_eint - u(i,j,k,UEINT)
