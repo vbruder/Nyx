@@ -746,6 +746,8 @@
       real(rt) :: a_half, a_dot, rhoInv
       real(rt) :: dtdxaold, dtdyaold, dtdzaold, small_pres_over_dens
 
+      real(rt) :: ke, rho_eint
+
       do i=1,3
          loq(i) = lo(i)-ngq
          hiq(i) = hi(i)+ngq
@@ -754,6 +756,7 @@
       ! Make q (all but p), except put e in slot for rho.e, fix after eos call.
       ! The temperature is used as an initial guess for the eos call and will be overwritten.
       !
+
       do k = loq(3),hiq(3)
          do j = loq(2),hiq(2)
             do i = loq(1),hiq(1)
@@ -879,6 +882,13 @@
                                                        q(i,j,k,QV)*src(i,j,k,UMY) - &
                                                        q(i,j,k,QW)*src(i,j,k,UMZ) - &
                                                        a_dot * THREE * gamma_minus_1 * q(i,j,k,QREINT)
+
+
+               !ke = 0.5d0 * q(i,j,k,QRHO) * (q(i,j,k,QU)*q(i,j,k,QU)+q(i,j,k,QV)*q(i,j,k,QV)+q(i,j,k,QW)*q(i,j,k,QW))
+               !rho_eint = uin(i,j,k,UEDEN) - ke
+               !if (rho_eint .gt. 0.d0 .and. rho_eint/uin(i,j,k,UEDEN) .gt. 1e-3) then
+               !   q(i,j,k,QREINT) = rho_eint!*rhoInv
+               !endif
 
                dpde = gamma_minus_1 * q(i,j,k,QRHO)
                dpdr = gamma_minus_1 * q(i,j,k,QREINT)/q(i,j,k,QRHO)
@@ -1009,6 +1019,8 @@
       real(rt) :: vol, volinv, a_newsq_inv
       real(rt) :: a_half_inv, a_new_inv, dt_a_new
       integer  :: i, j, k, n
+
+      real(rt) :: ke, rho_eint
 
       a_half  = HALF * (a_old + a_new)
       a_oldsq = a_old * a_old
