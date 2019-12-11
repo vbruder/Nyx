@@ -48,7 +48,7 @@ amr.data_log = runlog
 
 #This is how we restart from a checkpoint and write an ascii particle file
 #Leave this commented out in cvs version
-#amr.restart = chk00100
+#amr.restart = chk00400
 #max_step = 4
 #particles.particle_output_file = particle_output
 
@@ -67,7 +67,7 @@ geometry.prob_lo     =  0     0     0
 #Domain size in Mpc
 geometry.prob_hi     =  1.481481  1.481481  1.481481
 
-amr.n_cell           =  64  64  64 
+amr.n_cell           =  32  32  32
 amr.max_grid_size    = 32
 #fabarray.mfiter_tile_size = 128 8 8
 fabarray.mfiter_tile_size = 1024000 8 8
@@ -108,7 +108,7 @@ nyx.do_dm_particles = 1
 #  "AsciiFile"        "Random"      "Cosmological"
 # >>>>>>>>>>>>>  PARTICLE INIT OPTIONS <<<<<<<<<<<<<<<<
 nyx.particle_init_type = BinaryFile
-nyx.binary_particle_file = 1Mpc_64_z1000.nyx.0
+nyx.binary_particle_file = 1Mpc_32_z1000.nyx.0
 particles.nparts_per_read = 16777216
 
 # >>>>>>>>>>>>>  PARTICLE MOVE OPTIONS <<<<<<<<<<<<<<<<
@@ -117,15 +117,15 @@ particles.nparts_per_read = 16777216
 nyx.particle_move_type = Gravitational
 
 # TIME STEP CONTROL
-nyx.relative_max_change_a = 0.01    # max change in scale factor
-particles.cfl             = 0.5     # 'cfl' for particles 
-nyx.cfl                   = 0.5     # cfl number for hyperbolic system
+nyx.relative_max_change_a = 0.05    # max change in scale factor
+particles.cfl             = 0.3     # 'cfl' for particles 
+nyx.cfl                   = 0.3     # cfl number for hyperbolic system
 nyx.init_shrink           = 1.0     # scale back initial timestep
 nyx.change_max            = 2.0     # factor by which timestep can change
 nyx.dt_cutoff             = 5.e-20  # level 0 timestep below which we halt
 
 # DIAGNOSTICS & VERBOSITY
-nyx.print_fortran_warnings = 0
+nyx.print_fortran_warnings = 1
 nyx.sum_interval      = -1      # timesteps between computing mass
 nyx.v                 = 1       # verbosity in Nyx.cpp
 gravity.v             = 1       # verbosity in Gravity.cpp
@@ -156,10 +156,11 @@ amr.plot_files_output = 1
 amr.plot_file       = plt
 amr.plot_int        = -1
 amr.plot_nfiles     = 1
-nyx.plot_z_values   = 20.0 15.0 12.0 10.0 8.0 7.0 6.0
+nyx.plot_z_values   = 7.0
+#20.0 15.0 12.0 10.0 8.0 7.0 6.0
 
 amr.plot_vars        = density xmom ymom zmom rho_e Temp phi_grav Ne
-amr.derive_plot_vars = particle_mass_density
+amr.derive_plot_vars = particle_count particle_mass_density MachNumber
 
 # SENSEI in situ
 sensei.enabled = 0
