@@ -218,6 +218,7 @@ public:
     //
     static amrex::Real comoving_OmB;
     static amrex::Real comoving_OmM;
+    static amrex::Real comoving_OmR;
     static amrex::Real comoving_h;
 
     //
@@ -447,7 +448,7 @@ public:
   
   int integrate_state_vec(amrex::MultiFab &state,   amrex::MultiFab &diag_eos, const amrex::Real& a, const amrex::Real& delta_time);
    int integrate_state_grownvec(amrex::MultiFab &state,   amrex::MultiFab &diag_eos, const amrex::Real& a, const amrex::Real& delta_time);
-  int integrate_state_vec_mfin(amrex::Array4<amrex::Real>const& state4,   amrex::Array4<amrex::Real>const& diag_eos4,const  amrex::Box& tbx,  const amrex::Real& a, const amrex::Real& delta_time);
+  int integrate_state_vec_mfin(amrex::Array4<amrex::Real>const& state4,   amrex::Array4<amrex::Real>const& diag_eos4,const  amrex::Box& tbx,  const amrex::Real& a, const amrex::Real& delta_time, long int& old_max_steps, long int& new_max_steps);
 
     amrex::Real advance_particles_only (amrex::Real time, amrex::Real dt, int iteration, int ncycle);
 
@@ -773,6 +774,12 @@ protected:
     // specifies the heating/cooling source term
     static int heat_cool_type;
 
+    // specifies the allocation type for sundials vector
+    static int sundials_alloc_type;
+
+    // specifies the allocation type for sundials vector
+    static int use_typical_steps;
+
     // if true, use non-negative constraint on energy
     static int use_sundials_constraint;
 
@@ -820,6 +827,9 @@ protected:
     static amrex::Real average_neutr_density;
     static amrex::Real average_total_density;
 
+  // Previous maximum number of steps for sundials
+  static long int old_max_sundials_steps;
+  static long int new_max_sundials_steps;
 
   // for keeping track of the amount of CPU time used -- this will persist
   // after restarts
