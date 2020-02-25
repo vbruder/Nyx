@@ -67,7 +67,7 @@ geometry.prob_lo     =  0     0     0
 #Domain size in Mpc
 geometry.prob_hi     =  1.481481  1.481481  1.481481
 
-amr.n_cell           =  64  64  64 
+amr.n_cell           =  32  32  32
 amr.max_grid_size    = 32
 #fabarray.mfiter_tile_size = 128 8 8
 fabarray.mfiter_tile_size = 1024000 8 8
@@ -118,11 +118,7 @@ particles.nparts_per_read = 16777216
 nyx.particle_move_type = Gravitational
 
 # TIME STEP CONTROL
-<<<<<<< HEAD
 nyx.relative_max_change_a = 0.005    # max change in scale factor
-=======
-nyx.relative_max_change_a = 0.05    # max change in scale factor
->>>>>>> messing with reset conditions
 particles.cfl             = 0.3     # 'cfl' for particles 
 nyx.cfl                   = 0.3     # cfl number for hyperbolic system
 nyx.init_shrink           = 1.0     # scale back initial timestep
@@ -131,10 +127,7 @@ nyx.dt_cutoff             = 5.e-20  # level 0 timestep below which we halt
 
 # DIAGNOSTICS & VERBOSITY
 nyx.print_fortran_warnings = 1
-<<<<<<< HEAD
 
-=======
->>>>>>> messing with reset conditions
 nyx.sum_interval      = -1      # timesteps between computing mass
 nyx.v                 = 1       # verbosity in Nyx.cpp
 gravity.v             = 1       # verbosity in Gravity.cpp
@@ -143,14 +136,15 @@ mg.v                  = 1       # verbosity in Amr.cpp
 particles.v           = 2       # verbosity in Particle class
 
 # REFINEMENT / REGRIDDING
-amr.max_level          = 0        # maximum level number allowed
-#amr.ref_ratio          = 2 2 2 2
-#amr.regrid_int         = 4 4 4 4
-#amr.n_error_buf        = 0 0 0 8
-#amr.refine_grid_layout = 1
-amr.regrid_on_restart  = 0
-#amr.blocking_factor    = 32
-#amr.nosub              = 1
+amr.max_level          = 0        # maximum level number allowed, base grid = 0
+amr.ref_ratio          = 2 2 2 2  # refinement ratio at different levels: 2 or 4
+amr.blocking_factor    = 16       # min grid size
+amr.subcycling_mode    = Auto     # Auto or None
+
+amr.regrid_int         = 2 2 2 2
+amr.n_error_buf        = 2 2 2 2
+amr.refine_grid_layout = 1
+amr.regrid_on_restart  = 1
 
 # CHECKPOINT FILES
 amr.checkpoint_files_output = 1
@@ -164,19 +158,14 @@ amr.plot_files_output = 1
 amr.plot_file       = plt
 amr.plot_int        = -1
 amr.plot_nfiles     = 1
-<<<<<<< HEAD
 
 amr.plot_vars        = density xmom ymom zmom rho_e Temp phi_grav Ne
 amr.derive_plot_vars = particle_count particle_mass_density MachNumber
 nyx.plot_z_values   = 20.0 15.0 12.0 10.0 8.0 7.0 6.0
 
-=======
-nyx.plot_z_values   = 7.0
-#20.0 15.0 12.0 10.0 8.0 7.0 6.0
-
 amr.plot_vars        = density xmom ymom zmom rho_e Temp phi_grav Ne
 amr.derive_plot_vars = particle_count particle_mass_density MachNumber
->>>>>>> messing with reset conditions
+
 
 # SENSEI in situ
 sensei.enabled = 0
