@@ -3,7 +3,7 @@ subroutine f_rhs_rpar(num_eq, time, e_in, energy, rpar, ipar)
       use amrex_error_module, only : amrex_abort
       use amrex_fort_module , only : rt => amrex_real
       use fundamental_constants_module, only: e_to_cgs, density_to_cgs, &
-                                              heat_from_cgs
+                                              heat_from_cgs, L_unit
       use eos_module, only: iterate_ne
       use atomic_rates_module, ONLY: TCOOLMIN, TCOOLMAX, NCOOLTAB, deltaT, &
                                      MPROTON, XHYDROGEN, &
@@ -133,6 +133,13 @@ subroutine f_rhs_rpar(num_eq, time, e_in, energy, rpar, ipar)
       heat = JH_vode*nh0*eh0 + JH_vode*nhe0*ehe0 + JHe_vode*nhep*ehep
       rho_heat = uvb_density_A * (rho_vode/mean_rhob)**uvb_density_B
       heat = rho_heat*heat
+
+      ! X-ray heating term
+
+      sfr_r15 = 1.376d-2*((1+z_vode)**(3.26d0-3.0d0))/(1.0d0+((1.0d0+z_vode)/2.59d0)**5.68d0)
+      sfr_r15 = sfr_r15*(L_unit**-3)
+      xray = 3.4d40*0.2*sfr_r15*nh0/nh
+      heat = heat + xray
 
       ! Convert back to code units                                                                                                                                                                                  
       ne_vode     = ne_vode / nh
