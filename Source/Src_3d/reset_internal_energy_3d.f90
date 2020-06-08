@@ -27,7 +27,7 @@
 
       ! Local variables
       integer          :: i,j,k
-      real(rt) :: Up, Vp, Wp, ke, rho_eint, eint_new, rho_eden
+      real(rt) :: Up, Vp, Wp, ke, rho_eint, eint_new
       real(rt) :: dummy_pres, rhoInv
 
       ! Reset internal energy if necessary
@@ -42,14 +42,9 @@
            ke     = 0.5d0 * u(i,j,k,URHO) * (Up*Up + Vp*Vp + Wp*Wp)
 
            rho_eint = u(i,j,k,UEDEN) - ke
-           rho_eden = max(u(i-1,j,k,UEDEN),u(i+1,j,k,UEDEN), &
-                          u(i,j-1,k,UEDEN),u(i,j+1,k,UEDEN), &
-                          u(i,j,k-1,UEDEN),u(i,j,k+1,UEDEN))
 
-
-           ! Reset (e from e) if it's greater than 0.1% of big E.
-           if (rho_eint .gt. 0.d0 .and. ((rho_eint/u(i,j,k,UEDEN) .gt. 1e-3) .or. (rho_eint / max(rho_eden,u(i,j,k,UEDEN)) .gt. 1.d-1)) .and. interp .eq. 0) then
-           !if (rho_eint .gt. 0.d0 .and. rho_eint / max(rho_eden,u(i,j,k,UEDEN)) .gt. 1.d-3 .and. interp .eq. 0) then
+           ! Reset (e from e) if it's greater than 0.01% of big E.
+           if (rho_eint .gt. 0.d0 .and. rho_eint / u(i,j,k,UEDEN) .gt. 1.d-6 .and. interp .eq. 0) then
 
               ! Create reset source so u(i,j,k,UEINT) = u(i,j,k,UEINT) + r(i,j,k) = rho_eint
                r(i,j,k) = rho_eint - u(i,j,k,UEINT)
