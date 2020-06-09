@@ -166,7 +166,7 @@
       use amrex_fort_module, only : rt => amrex_real
       use probdata_module
       use atomic_rates_module, only : XHYDROGEN, mean_rhob
-      use meth_params_module, only : URHO, UMX, UMZ, UEDEN, UEINT, UFS, &
+      use meth_params_module, only : URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, &
       small_dens, TEMP_COMP, NE_COMP, ZHI_COMP
 
       implicit none
