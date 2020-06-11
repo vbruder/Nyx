@@ -32,9 +32,14 @@ module atomic_rates_module
   real(rt), dimension(:), allocatable, public :: BetaH0, BetaHe0, BetaHep, Betaff1, Betaff4
   real(rt), dimension(:), allocatable, public :: RecHp, RecHep, RecHepp
 
+  ! Pre-reionization electron fraction (from RECFAST file)
+  integer, private :: NRFFILE
+  real(rt), dimension(:), allocatable, public :: rfz, rfx, rft
+
   real(rt), allocatable, public :: ggh0, gghe0, gghep, eh0, ehe0, ehep
   real(rt), allocatable, public :: ggh0_2, gghe0_2, gghep_2, eh0_2, ehe0_2, ehep_2
   real(rt), allocatable, public :: this_z
+  real(rt), allocatable, public :: minxe
  
   real(rt), allocatable, public :: TCOOLMIN, TCOOLMAX
   real(rt), allocatable, public :: TCOOLMIN_R, TCOOLMAX_R
@@ -201,6 +206,28 @@ module atomic_rates_module
          end do
          close(11)
 
+         ! Hard-coding the RECFAST input file for now.
+         ! TODO: Make this an input parameter.
+         open(unit=13, file='RECFAST_NYX', status='old')
+         if (amrex_pd_ioprocessor()) then
+            print*, 'TABULATE_NELEC: Electron fraction file is defaulted to "RECFAST".'
+         endif
+
+         ! Read in pre-reionization electron fraction from RECFAST output file
+         NRFFILE = 0
+         do
+            read(13,*,end=12) tmp, tmp, tmp
+            NRFFILE = NRFFILE + 1
+            end do
+         12 rewind(13)
+
+         allocate( rfz(NRFFILE), rfx(NRFFILE), rft(NRFFILE) )
+
+         do i = 1, NRFFILE
+            read(13,*) rfz(i), rfx(i), rft(i)
+         end do
+         close(13)
+
          ! Initialize cooling tables
          t = 10.0d0**TCOOLMIN
          if (Katz96) then
@@ -317,6 +344,7 @@ module atomic_rates_module
       subroutine fort_interp_to_this_z(z) bind(C, name='fort_interp_to_this_z')
 
       use vode_aux_module, only: z_vode
+      use reion_aux_module, only: zhi_flash, zheii_flash, flash_h, flash_he
 
       real(rt), intent(in) :: z
       real(rt) :: lopz, fact
@@ -362,7 +390,22 @@ module atomic_rates_module
          this_z = z
          z_vode = z
          lopz   = dlog10(1.0d0 + z)
-         
+
+      if (this_z .ge. rfz(1)) then
+         j = 1
+      else
+         do i = 2, NRFFILE
+            if (this_z .ge. rfz(i)) then
+               j = i-1
+               exit
+            endif
+         enddo
+      endif
+
+      fact  = (this_z-rfz(j))/(rfz(j+1)-rfz(j))
+
+      minxe  = rfx(j) + (rfx(j+1)-rfx(j))*fact
+
          if (lopz .ge. lzr(NCOOLFILE)) then
             ggh0  = 0.0d0
             gghe0 = 0.0d0
@@ -392,6 +435,22 @@ module atomic_rates_module
          eh0   = reh0(j)   + (reh0(j+1)-reh0(j))*fact
          ehe0  = rehe0(j)  + (rehe0(j+1)-rehe0(j))*fact
          ehep  = rehep(j)  + (rehep(j+1)-rehep(j))*fact
+
+         if (flash_h .eqv. .true.) then
+            if (this_z .ge. zhi_flash) then
+                ggh0  = 0.0d0
+                gghe0 = 0.0d0
+                eh0   = 0.0d0
+                ehe0  = 0.0d0
+            endif
+         endif
+
+         if (flash_he .eqv. .true.) then
+            if (this_z .ge. zheii_flash) then
+               gghep = 0.0d0
+               ehep = 0.0d0
+            endif
+         endif
       endif
        end subroutine fort_interp_to_this_z
 
