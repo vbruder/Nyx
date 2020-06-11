@@ -69,6 +69,7 @@ module atomic_rates_module
   attributes(managed) :: XHYDROGEN, YHELIUM
   attributes(managed) :: TCOOLMIN, TCOOLMAX, TCOOLMAX_R, TCOOLMIN_R, deltaT
   attributes(managed) :: uvb_density_A, uvb_density_B, mean_rhob
+  attributes(managed) :: minxe
 #endif
   
   contains
