@@ -423,7 +423,7 @@ module eos_module
 
        subroutine iterate_ne_vec(z, U, t, nh, ne, nh0, nhp, nhe0, nhep, nhepp, veclen)
 
-      use atomic_rates_module, ONLY: this_z, YHELIUM, BOLTZMANN, MPROTON, TCOOLMAX_R
+      use atomic_rates_module, ONLY: this_z, YHELIUM, BOLTZMANN, MPROTON, TCOOLMAX_R, minxe
       use meth_params_module, only: gamma_minus_1
 
       integer :: i
@@ -560,6 +560,11 @@ module eos_module
 
       enddo
 
+      ! Adjust minimum electron fraction to be the freeze-out from recombination computed by RECFAST
+      do i = 1, veclen
+         ne(i) = max(ne(i),minxe)
+      enddo
+
       ! Get rates for the final ne
       do i = 1, veclen
         mu(i) = (1.0d0+4.0d0*YHELIUM) / (1.0d0+YHELIUM+ne(i))
@@ -611,7 +616,7 @@ module eos_module
                                      TCOOLMIN, TCOOLMAX, NCOOLTAB, deltaT, &
                                      AlphaHp, AlphaHep, AlphaHepp, Alphad, &
                                      GammaeH0, GammaeHe0, GammaeHep, &
-                                     ggh0, gghe0, gghep
+                                     ggh0, gghe0, gghep, minxe
 
       integer, intent(in) :: vec_count
       integer, dimension(vec_count), intent(in) :: JH, JHe
@@ -668,6 +673,8 @@ module eos_module
       ! H+
       do i = 1, vec_count
         nhp(i) = 1.0d0 - ahp(i)/(ahp(i) + geh0(i) + ggh0ne(i))
+        ! Correct for recombination freeze out
+        nhp(i) = max(nhp(i),minxe)
       end do
 
       ! He+
@@ -696,7 +703,7 @@ module eos_module
 
        subroutine iterate_ne(JH, JHe, z, U, t, nh, ne, nh0, nhp, nhe0, nhep, nhepp)
 
-      use atomic_rates_module, only: this_z, YHELIUM
+      use atomic_rates_module, only: this_z, YHELIUM, minxe
       use vode_aux_module, only: i_vode,j_vode,k_vode, NR_vode
 !      use cudafor
 
@@ -769,6 +776,9 @@ module eos_module
 
       enddo
 
+      ! Adjust minimum electron fraction to be the freeze-out from recombination computed by RECFAST
+      ne = max(ne,minxe)
+
       ! Get rates for the final ne
       call ion_n(JH, JHe, U, nh, ne, nhp, nhep, nhepp, t)
       NR_vode  = NR_vode + 1
@@ -788,7 +798,7 @@ module eos_module
                                      TCOOLMIN, TCOOLMAX, TCOOLMAX_R, NCOOLTAB, deltaT, &
                                      AlphaHp, AlphaHep, AlphaHepp, Alphad, &
                                      GammaeH0, GammaeHe0, GammaeHep, &
-                                     ggh0, gghe0, gghep
+                                     ggh0, gghe0, gghep, minxe
       use vode_aux_module, only: i_vode,j_vode,k_vode, NR_vode
 !      use cudafor
 
@@ -858,6 +868,8 @@ module eos_module
 
       ! H+
       nhp = 1.0d0 - ahp/(ahp + geh0 + ggh0ne)
+      ! Correct for recombination freeze out
+      nhp = max(nhp,minxe)
 
       ! He+
       if ((gehe0 + gghe0ne) .gt. smallest_val) then
@@ -882,7 +894,7 @@ module eos_module
       AMREX_CUDA_FORT_DEVICE subroutine iterate_ne_device(JH, JHe, z, U, t, nh, ne, nh0, nhp, nhe0, nhep, nhepp)
 
       use amrex_error_module, only: amrex_abort, amrex_error
-      use atomic_rates_module, only: this_z, YHELIUM
+      use atomic_rates_module, only: this_z, YHELIUM, minxe
 
       integer :: i
 
@@ -973,6 +985,9 @@ module eos_module
 
          enddo
 
+         ! Adjust minimum electron fraction to be the freeze-out from recombination computed by RECFAST
+         ne = max(ne,minxe)
+
          ! Get rates for the final ne
          call ion_n_device(JH, JHe, U, nh, ne, nhp, nhep, nhepp, t)
 
@@ -992,7 +1007,7 @@ module eos_module
                                      TCOOLMIN, TCOOLMAX, NCOOLTAB, deltaT, &
                                      AlphaHp, AlphaHep, AlphaHepp, Alphad, &
                                      GammaeH0, GammaeHe0, GammaeHep, &
-                                     ggh0, gghe0, gghep
+                                     ggh0, gghe0, gghep, minxe
 
       integer, intent(in) :: JH, JHe
       real(rt), intent(in   ) :: U, nh, ne
@@ -1045,6 +1060,8 @@ module eos_module
 
       ! H+
       nhp = 1.0d0 - ahp/(ahp + geh0 + ggh0ne)
+      ! Correct for recombination freeze out
+      nhp = max(nhp,minxe)
 
       ! He+
       if ((gehe0 + gghe0ne) .gt. smallest_val) then
@@ -1068,7 +1085,7 @@ module eos_module
       AMREX_CUDA_FORT_DEVICE subroutine iterate_ne_full_device(JH, JHe, z, U, t, nh, ne, nh0, nhp, nhe0, nhep, nhepp)
 
       use amrex_error_module, only: amrex_abort
-      use atomic_rates_module, only: this_z, YHELIUM
+      use atomic_rates_module, only: this_z, YHELIUM, minxe
 
       implicit none
 
@@ -1120,6 +1137,9 @@ module eos_module
 
       enddo
 
+      ! Adjust minimum electron fraction to be the freeze-out from recombination computed by RECFAST
+      ne = max(ne,minxe)
+
       ! Get rates for the final ne
       call ion_n_full_device(JH, JHe, U, nh, ne, nhp, nhep, nhepp, t, z)
 
@@ -1140,7 +1160,7 @@ module eos_module
                                      GammaeH0, GammaeHe0, GammaeHep, &
                                      rggh0, rgghe0, rgghep, &
                                      reh0, rehe0, rehep, &
-                                     lzr, NCOOLFILE
+                                     lzr, NCOOLFILE, minxe
 
       implicit none
 
@@ -1228,6 +1248,8 @@ module eos_module
 
       ! H+
       nhp = 1.0d0 - ahp/(ahp + geh0 + ggh0ne)
+      ! Correct for recombination freeze out
+      nhp = max(nhp,minxe)
 
       ! He+
       if ((gehe0 + gghe0ne) .gt. smallest_val) then
@@ -1256,7 +1278,7 @@ module eos_module
                                      TCOOLMIN, TCOOLMAX, NCOOLTAB, deltaT, &
                                      AlphaHp, AlphaHep, AlphaHepp, Alphad, &
                                      GammaeH0, GammaeHe0, GammaeHep, &
-                                     ggh0_2, gghe0_2, gghep_2
+                                     ggh0_2, gghe0_2, gghep_2, minxe
 
       integer, intent(in) :: JH, JHe
       real(rt), intent(in   ) :: U, nh, ne
@@ -1309,6 +1331,8 @@ module eos_module
 
       ! H+
       nhp = 1.0d0 - ahp/(ahp + geh0 + ggh0ne)
+      ! Correct for recombination freeze out
+      nhp = max(nhp,minxe)
 
       ! He+
       if ((gehe0 + gghe0ne) .gt. smallest_val) then
