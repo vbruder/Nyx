@@ -122,7 +122,7 @@
             ! Initialize at RECFAST values.
             ! Temp must be fudged due to mean molecular weight readjustment
             diag_eos(i,j,k,TEMP_COMP) = 2.725d0*(1.0d0 + z_in)
-            diag_eos(i,j,k,  NE_COMP) = 0.2884d-1
+            diag_eos(i,j,k,  NE_COMP) = 0.48568d-1
 
             if (ZHI_COMP .gt. -1) then
                diag_eos(i,j,k, ZHI_COMP) = 7.5d0
