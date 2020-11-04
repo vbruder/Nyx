@@ -168,7 +168,7 @@ Nyx::writePlotFile (const std::string& dir,
             if (it->name() == "particle_count" ||
                 it->name() == "total_particle_count" ||
                 it->name() == "particle_mass_density" ||
-                it->name() == "total_density" || 
+                it->name() == "total_density" ||
                 it->name() == "particle_x_velocity" ||
                 it->name() == "particle_y_velocity" ||
                 it->name() == "particle_z_velocity" )
@@ -331,7 +331,7 @@ Nyx::writePlotFilePost (const std::string& dir, ostream& os)
     }
 
     //
-    // Write the particles and `comoving_a` in a plotfile directory. 
+    // Write the particles and `comoving_a` in a plotfile directory.
     //
     particle_plot_file(dir);
 
@@ -1063,6 +1063,7 @@ Nyx::blueprint_check_point ()
     varnames.push_back("He");
 #endif
 
+    amrex::ErrorStream() << "Ascent!!" << std::endl;
     ///////////////////////////////////////////////////////////////////////////
     // Wrap our AMReX Mesh into a Conduit Mesh Blueprint Tree
     ///////////////////////////////////////////////////////////////////////////
@@ -1096,7 +1097,7 @@ Nyx::blueprint_check_point ()
                            bp_mesh);
 #endif
     //conduit::Node bp_particles;
-    
+
     Vector<std::string> particle_varnames;
     particle_varnames.push_back("particle_mass");
     particle_varnames.push_back("particle_xvel");
@@ -1111,7 +1112,7 @@ Nyx::blueprint_check_point ()
 
 #ifdef NEUTRINO_PARTICLES
 
-#ifdef NEUTRINO_DARK_PARTICLES    
+#ifdef NEUTRINO_DARK_PARTICLES
     Vector<std::string> neutrino_varnames;
     neutrino_varnames.push_back("neutrino_mass");
     neutrino_varnames.push_back("neutrino_xvel");
@@ -1125,7 +1126,7 @@ Nyx::blueprint_check_point ()
                                         bp_mesh,npc_plt_particle_file);
 #endif
 #endif
-    
+
     // very helpful for debugging when we actual try
     // to pull the varnames list from amrex, vs hand initing
     //
@@ -1133,9 +1134,9 @@ Nyx::blueprint_check_point ()
     // amrex::Print()<<particle_varnames.size()<<4<<std::endl;
 
     ///////////////////////////////////////////////////////////////////////////
-    // Uncomment below to: 
-    // Save the Blueprint Mesh to a set of files that we can 
-    // view in VisIt. 
+    // Uncomment below to:
+    // Save the Blueprint Mesh to a set of files that we can
+    // view in VisIt.
     // (For debugging and to demonstrate how to do this w/o Ascent)
     ///////////////////////////////////////////////////////////////////////////
     //
@@ -1143,38 +1144,35 @@ Nyx::blueprint_check_point ()
     //               << cycle <<")"
     //               << std::endl;
     //
-    // WriteBlueprintFiles(bp_mesh,"bp_example_",cycle,"hdf5");
+     WriteBlueprintFiles(bp_mesh,"bp_example_",cycle,"hdf5");
 
     ///////////////////////////////////////////////////////////////////
     // Render with Ascent
     ///////////////////////////////////////////////////////////////////
 
-    if(verbose)
+    //if(verbose)
         amrex::Print()<< "Executing Ascent (cycle="
                       << cycle <<")"
                       << std::endl;
 
-    Ascent ascent;
-    conduit::Node open_opts;
-    // tell ascent to use the ghost_indicator field to exclude ghosts
-
-    open_opts["ghost_field_name"] = "ghost_indicator";
-    
-#ifdef BL_USE_MPI
-    // if mpi, we need to provide the mpi comm to ascent
-    open_opts["mpi_comm"] = MPI_Comm_c2f(ParallelDescriptor::Communicator());
-#endif
-
-    ascent.open(open_opts);
+//    Ascent ascent;
+//    conduit::Node open_opts;
+//
+//#ifdef BL_USE_MPI
+//    // if mpi, we need to provide the mpi comm to ascent
+//    open_opts["mpi_comm"] = MPI_Comm_c2f(ParallelDescriptor::Communicator());
+//#endif
+//
+//    ascent.open(open_opts);
     // publish structured mesh to ascent
-    ascent.publish(bp_mesh);
-    
+    the_ascent.publish(bp_mesh);
+
     // call ascent, with empty actions.
     // actions below will be overridden by those in
     // ascent_actions.yaml
     Node actions;
-    ascent.execute(actions);
-    ascent.close();
+    the_ascent.execute(actions);
+//    ascent.close();
 
 
 

@@ -20,6 +20,7 @@
 #include <AMReX_MultiFab.H>
 #ifdef BL_USE_MPI
 #include <MemInfo.H>
+#include <mpi.h>
 #endif
 #include <Nyx.H>
 
@@ -55,7 +56,55 @@ const int quitSignal(-44);
 void
 nyx_main (int argc, char* argv[])
 {
+#if BL_USE_MPI
+    MPI_Init(nullptr, nullptr);
+    int world_size;
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+    float node_split_factor = 0.8;
+    int sim_count = int(node_split_factor * world_size);
+    // split comm in sim/vis
+    MPI_Group world_group;
+    MPI_Comm_group(MPI_COMM_WORLD, &world_group);
+
+    MPI_Group sim_group;
+    std::vector<int> sim_ranks(sim_count);
+    std::iota(sim_ranks.begin(), sim_ranks.end(), 0);
+
+    MPI_Group_incl(world_group, sim_count, sim_ranks.data(), &sim_group);
+
+    MPI_Comm sim_comm;
+    MPI_Comm_create_group(MPI_COMM_WORLD, sim_group, 0, &sim_comm);
+
+    conduit::Node open_opts;
+    // if mpi, we need to provide the mpi comm to ascent
+    open_opts["mpi_comm"] = MPI_Comm_c2f(MPI_COMM_WORLD);
+    open_opts["runtime/type"] = "probing";
+    open_opts["actions_file"] = "probing_actions.yaml";
+    // defined in Nyx.H
+    the_ascent.open(open_opts);
+
+    if(rank < sim_count)
+    {
+      amrex::Initialize(argc, argv, true, sim_comm);
+    }
+    else
+    {
+      // im a vis rank. Do vis things
+      while(true)
+      {
+        conduit::Node blank_actions;
+        conduit::Node blank_data;
+        the_ascent.publish(blank_data);
+        the_ascent.execute(blank_actions);
+      }
+      return;
+    }
+#else
     amrex::Initialize(argc, argv);
+#endif
     {
       amrex::Gpu::LaunchSafeGuard lsg(false);
 
@@ -132,7 +181,7 @@ nyx_main (int argc, char* argv[])
 
     BL_PROFILE_REGION("R::Nyx::coarseTimeStep");
 
-    while ( ! finished) 
+    while ( ! finished)
     {
      // If we set the regrid_on_restart flag and if we are *not* going to take
      // a time step then we want to go ahead and regrid here.
@@ -200,7 +249,7 @@ nyx_main (int argc, char* argv[])
     BL_PROFILE_VAR_STOP(pmain);
     BL_PROFILE_REGION_STOP("main()");
     BL_PROFILE_SET_RUN_TIME(dRunTime2);
-    
+
     }
     amrex::Finalize();
 }
