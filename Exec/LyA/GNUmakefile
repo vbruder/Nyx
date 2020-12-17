@@ -1,5 +1,5 @@
 # AMREX_HOME defines the directory in which we will find all the AMReX code
-AMREX_HOME  ?= ../../../amrex
+AMREX_HOME ?= /mnt/trrstore/A02/cluster/app/ascent809/amrex#../../../amrex
 
 # TOP defines the directory in which we will find Source, Exec, etc
 TOP = ../..
@@ -8,7 +8,7 @@ TOP = ../..
 COMP    = gnu
 USE_MPI = TRUE
 # Use with Async IO
-MPI_THREAD_MULTIPLE = FALSE
+MPI_THREAD_MULTIPLE = TRUE
 USE_OMP = TRUE
 USE_CUDA = FALSE
 
@@ -25,10 +25,17 @@ PRECISION = DOUBLE
 USE_SINGLE_PRECISION_PARTICLES = TRUE
 DEBUG     = FALSE
 
+# ascent
+USE_ASCENT_INSITU=TRUE 
+USE_ASCENT=TRUE 
+ASCENT_DIR=/mnt/trrstore/A02/cluster/app/ascent809/ascent/install/
+USE_CONDUIT=TRUE 
+CONDUIT_DIR=/mnt/trrstore/A02/cluster/app/ascent809/conduit/install/
+
 # physics
 DIM      = 3
 USE_GRAV = TRUE
-USE_HEATCOOL = TRUE
+USE_HEATCOOL = FALSE
 USE_AGN = FALSE
 ifeq ($(NO_HYDRO),TRUE)
 USE_SDC = FALSE

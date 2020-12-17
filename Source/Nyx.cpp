@@ -80,6 +80,9 @@ Vector<Real> Nyx::plot_z_values;
 Vector<Real> Nyx::analysis_z_values;
 int Nyx::insitu_start = 0;
 int Nyx::insitu_int = 0;
+int Nyx::insitu_time = 0;
+int Nyx::insitu_use_time = 0;
+float Nyx::insitu_node_split_factor = 1.f;
 
 int Nyx::load_balance_int = -1;
 amrex::Real Nyx::load_balance_start_z = 15;
@@ -187,6 +190,10 @@ int Nyx::use_exact_gravity  = 0;
 Real Nyx::mass_halo_min     = 1.e10;
 Real Nyx::mass_seed         = 1.e5;
 #endif
+
+// hybrid in situ
+std::chrono::time_point<std::chrono::system_clock> Nyx::g_wc_cycle_time = std::chrono::system_clock::now();
+int Nyx::g_vis_cycle = 0;
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -598,6 +605,9 @@ Nyx::read_params ()
     pp_insitu.query("int", insitu_int);
     pp_insitu.query("start", insitu_start);
     pp_insitu.query("reeber_int", reeber_int);
+    pp_insitu.query("time", insitu_time);
+    pp_insitu.query("use_time", insitu_use_time);
+    pp_insitu.query("node_split_factor", insitu_node_split_factor);
 
     pp_nyx.query("load_balance_int",          load_balance_int);
     pp_nyx.query("load_balance_start_z",          load_balance_start_z);
@@ -728,6 +738,8 @@ Nyx::Nyx (Amr&            papa,
     if (heat_cool_type == 3 || heat_cool_type == 4 || heat_cool_type == 5 || heat_cool_type == 7 || heat_cool_type == 9 || heat_cool_type == 10 || heat_cool_type == 11 || heat_cool_type == 12)
 #endif
 		*/
+    g_wc_cycle_time = std::chrono::system_clock::now();
+    g_vis_cycle = 0;
 }
 
 Nyx::~Nyx ()
@@ -1647,10 +1659,30 @@ Nyx::post_timestep (int iteration)
         bool do_insitu = ((nstep+1) >= insitu_start) &&
             (insitu_int > 0) && ((nstep+1) % insitu_int == 0);
 
-    if(do_insitu || doAnalysisNow())
-    {
-      updateInSitu();
-    }
+        // start in situ visualization based on wall clock time
+        if (insitu_use_time)
+        {
+ #if BL_USE_MPI
+            // synchronize sim nodes (use Nyx.h to save sim_comm ?)
+            ParallelDescriptor::Barrier("Check simulation time for insitu trigger.");
+ #endif           
+            auto wc_now = std::chrono::system_clock::now();
+            std::chrono::duration<double> elapsed = wc_now - g_wc_cycle_time;
+            double sim_time = elapsed.count();
+            // std::cout << "---- " << sim_time << " | " << insitu_time << std::endl;
+            if (sim_time >= insitu_time)
+                do_insitu = true;
+            else
+                do_insitu = false;
+        }
+
+        if (insitu_int > 0 && nstep == 1)   // always do an in situ step after first step
+            do_insitu = true;
+
+        if(do_insitu || doAnalysisNow())
+        {
+            updateInSitu();
+        }
 
         write_info();
 

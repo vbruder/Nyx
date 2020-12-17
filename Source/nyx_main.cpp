@@ -53,9 +53,12 @@ const int resizeSignal(43);
 const int GimletSignal(55);
 const int quitSignal(-44);
 
+
 void
 nyx_main (int argc, char* argv[])
 {
+  int vis_cycle = 0;
+
 #if BL_USE_MPI
     MPI_Init(nullptr, nullptr);
     int world_size;
@@ -63,8 +66,23 @@ nyx_main (int argc, char* argv[])
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    float node_split_factor = 0.8;
-    int sim_count = int(node_split_factor * world_size);
+    // round sim node count to next cuberoot (similar to cloverleaf)
+    int sim_count = 0;
+    int next_cbrt = std::floor(std::pow(world_size, 1.0/3.0));
+    if (next_cbrt <= 1 || world_size == 8)
+      sim_count = world_size - 1;
+    else
+      sim_count = next_cbrt*next_cbrt*next_cbrt;
+
+    if (sim_count <= 0)
+      amrex::Abort("Simulation node must be greater zero.");
+
+    // float node_split_factor = 0.5f;
+    // ParmParse pp_insitu("insitu");
+    // pp_insitu.query("node_split_factor", node_split_factor);
+    // std::cout << "! node_split_factor " << node_split_factor << std::endl;
+    // int sim_count = int(node_split_factor * world_size);
+
     // split comm in sim/vis
     MPI_Group world_group;
     MPI_Comm_group(MPI_COMM_WORLD, &world_group);
@@ -97,8 +115,11 @@ nyx_main (int argc, char* argv[])
       {
         conduit::Node blank_actions;
         conduit::Node blank_data;
+        blank_data["state/vis_iteration"] = vis_cycle;
+        blank_data["state/sim_time"] = 0.0;
         the_ascent.publish(blank_data);
         the_ascent.execute(blank_actions);
+        vis_cycle++;
       }
       return;
     }

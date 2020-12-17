@@ -1058,12 +1058,20 @@ Nyx::blueprint_check_point ()
     varnames.push_back("Eden");
     varnames.push_back("Eint");
 
-#ifndef CONST_SPECIES
-    varnames.push_back("H");
-    varnames.push_back("He");
-#endif
+  #ifndef CONST_SPECIES
+      varnames.push_back("H");
+      varnames.push_back("He");
+  #endif
 
-    amrex::ErrorStream() << "Ascent!!" << std::endl;
+    auto wc_now = std::chrono::system_clock::now();
+    std::chrono::duration<double> elapsed = wc_now - g_wc_cycle_time;
+    double sim_time = elapsed.count();
+    if (g_vis_cycle == 0)
+      sim_time = insitu_time;
+
+    // amrex::ErrorStream() << "Calling Ascent at " << sim_time 
+    //                      << " | vis cycle: " << g_vis_cycle << std::endl;
+    
     ///////////////////////////////////////////////////////////////////////////
     // Wrap our AMReX Mesh into a Conduit Mesh Blueprint Tree
     ///////////////////////////////////////////////////////////////////////////
@@ -1072,8 +1080,10 @@ Nyx::blueprint_check_point ()
                            geom,
                            cur_time,
                            cycle,
-                           bp_mesh);
-#else
+                           bp_mesh,
+                           sim_time,
+                           g_vis_cycle);
+#else // NO_HYDRO
     Vector<std::string> varnames;
     const int n_data_items = 5;
     const int nGrow = 0;
@@ -1098,33 +1108,35 @@ Nyx::blueprint_check_point ()
 #endif
     //conduit::Node bp_particles;
 
-    Vector<std::string> particle_varnames;
-    particle_varnames.push_back("particle_mass");
-    particle_varnames.push_back("particle_xvel");
-    particle_varnames.push_back("particle_yvel");
-    particle_varnames.push_back("particle_zvel");
+    // Vector<std::string> particle_varnames;
+    // particle_varnames.push_back("particle_mass");
+    // particle_varnames.push_back("particle_xvel");
+    // particle_varnames.push_back("particle_yvel");
+    // particle_varnames.push_back("particle_zvel");
 
-    Vector<std::string> particle_int_varnames;
-    amrex::ParticleContainerToBlueprint(*(Nyx::theDMPC()),
-                                        particle_varnames,
-                                        particle_int_varnames,
-                                        bp_mesh,dm_plt_particle_file);
+    // Vector<std::string> particle_int_varnames;
+    // amrex::ParticleContainerToBlueprint(*(Nyx::theDMPC()),
+    //                                     particle_varnames,
+    //                                     particle_int_varnames,
+    //                                     bp_mesh,dm_plt_particle_file);
 
 #ifdef NEUTRINO_PARTICLES
 
-#ifdef NEUTRINO_DARK_PARTICLES
-    Vector<std::string> neutrino_varnames;
-    neutrino_varnames.push_back("neutrino_mass");
-    neutrino_varnames.push_back("neutrino_xvel");
-    neutrino_varnames.push_back("neutrino_yvel");
-    neutrino_varnames.push_back("neutrino_zvel");
+  #ifdef NEUTRINO_DARK_PARTICLES
+      amrex::ErrorStream() << "NEUTRINO_DARK_PARTICLES" << std::endl;
 
-    Vector<std::string> neutrino_int_varnames;
-    amrex::ParticleContainerToBlueprint(*(Nyx::theNPC()),
-                                        neutrino_varnames,
-                                        neutrino_int_varnames,
-                                        bp_mesh,npc_plt_particle_file);
-#endif
+      Vector<std::string> neutrino_varnames;
+      neutrino_varnames.push_back("neutrino_mass");
+      neutrino_varnames.push_back("neutrino_xvel");
+      neutrino_varnames.push_back("neutrino_yvel");
+      neutrino_varnames.push_back("neutrino_zvel");
+
+      Vector<std::string> neutrino_int_varnames;
+      amrex::ParticleContainerToBlueprint(*(Nyx::theNPC()),
+                                          neutrino_varnames,
+                                          neutrino_int_varnames,
+                                          bp_mesh,npc_plt_particle_file);
+  #endif
 #endif
 
     // very helpful for debugging when we actual try
@@ -1174,7 +1186,8 @@ Nyx::blueprint_check_point ()
     the_ascent.execute(actions);
 //    ascent.close();
 
-
+  g_wc_cycle_time = std::chrono::system_clock::now();
+  g_vis_cycle++;
 
 }
 #endif

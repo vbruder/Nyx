@@ -813,7 +813,6 @@ int integrate_state_struct
     //! Create the Level_ and other directories in checkpoint and plot files
     virtual void CreateLevelDirectory (const std::string &dir);
 
-
 protected:
 
     static void read_params();
@@ -865,6 +864,11 @@ protected:
     //
     // Static data members.
     //
+
+    // hybrid in situ
+    static std::chrono::time_point<std::chrono::system_clock> g_wc_cycle_time;
+    static int g_vis_cycle;
+
     static bool dump_old;
     static int verbose;
     static amrex::Real cfl;
@@ -930,6 +934,9 @@ protected:
     static amrex::Vector<amrex::Real> analysis_z_values;  // These are the value of "z" at which to perform analysis
     static int insitu_int;
     static int insitu_start;
+    static int insitu_time;
+    static int insitu_use_time;
+    static float insitu_node_split_factor;
 
     static int load_balance_int;
     static amrex::Real load_balance_start_z;
@@ -1020,7 +1027,6 @@ protected:
   static amrex::Real      startCPUTime;
 
   static amrex::Real getCPUTime();
-
 };
 
 #include <bc_fill.H>
