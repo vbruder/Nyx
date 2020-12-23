@@ -1,0 +1,53 @@
+-
+  action: "add_pipelines"
+  pipelines: 
+    pl1:
+      f1:
+        type: "recenter"
+        params:
+          field: "Density"
+          association: "vertex"
+-
+  action: "add_scenes"
+  probing:
+    factor: 0.2
+    batch_count: 3
+    node_split: 0.8
+    insitu_type: "hybrid"
+  scenes:
+    s1:
+      plots:
+        p1:
+          type: "volume"
+          field: "Density"
+          pipeline: "pl1"
+          min_value: 10.1
+          max_value: 15240000000.0
+          color_table: 
+            name: "viridis"
+            control_points: 
+              - 
+                type: "alpha"
+                position: 0.0
+                alpha: 0.0
+              - 
+                type: "alpha"
+                position: 0.1
+                alpha: 0.5
+              - 
+                type: "alpha"
+                position: 0.6
+                alpha: 0.7
+              - 
+                type: "alpha"
+                position: 1.0
+                alpha: 1.0
+      renders:
+        r1:
+          type: "cinema"
+          phi: 8
+          theta: 8
+          radius: 3.0
+          camera:
+            zoom: 0.3
+          db_name: "clover_db"

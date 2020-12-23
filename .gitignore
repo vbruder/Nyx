@@ -68,3 +68,10 @@ junk
 
 ChangeLog.Nyx
 git.*
+
+Exec/LyA/bp_example*
+Exec/LyA/*.blueprint_root
+Exec/LyA/ascent_flow_graph.html
+Exec/LyA/cinema_databases/
+Exec/LyA/timings*/
+Exec/LyA/images*/

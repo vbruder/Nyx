@@ -738,6 +738,7 @@ Nyx::Nyx (Amr&            papa,
     if (heat_cool_type == 3 || heat_cool_type == 4 || heat_cool_type == 5 || heat_cool_type == 7 || heat_cool_type == 9 || heat_cool_type == 10 || heat_cool_type == 11 || heat_cool_type == 12)
 #endif
 		*/
+    ParallelDescriptor::Barrier("Synchronize cycle timer.");
     g_wc_cycle_time = std::chrono::system_clock::now();
     g_vis_cycle = 0;
 }
@@ -1664,6 +1665,7 @@ Nyx::post_timestep (int iteration)
         {
  #if BL_USE_MPI
             // synchronize sim nodes (use Nyx.h to save sim_comm ?)
+            // std::cout << "---- barrier" << std::endl;
             ParallelDescriptor::Barrier("Check simulation time for insitu trigger.");
  #endif           
             auto wc_now = std::chrono::system_clock::now();
@@ -1676,7 +1678,7 @@ Nyx::post_timestep (int iteration)
                 do_insitu = false;
         }
 
-        if (insitu_int > 0 && nstep == 1)   // always do an in situ step after first step
+        if ((insitu_int > 0 || insitu_use_time) && nstep == 1)   // always do an in situ step after first step
             do_insitu = true;
 
         if(do_insitu || doAnalysisNow())

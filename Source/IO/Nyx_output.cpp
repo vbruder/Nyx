@@ -1186,6 +1186,7 @@ Nyx::blueprint_check_point ()
     the_ascent.execute(actions);
 //    ascent.close();
 
+  ParallelDescriptor::Barrier("Synchronize cycle timer.");
   g_wc_cycle_time = std::chrono::system_clock::now();
   g_vis_cycle++;
 
