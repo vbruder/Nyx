@@ -1661,7 +1661,7 @@ Nyx::post_timestep (int iteration)
             (insitu_int > 0) && ((nstep+1) % insitu_int == 0);
 
         // start in situ visualization based on wall clock time
-        if (insitu_use_time)
+        if (insitu_use_time && nstep > insitu_start)
         {
  #if BL_USE_MPI
             // synchronize sim nodes (use Nyx.h to save sim_comm ?)
@@ -1678,8 +1678,10 @@ Nyx::post_timestep (int iteration)
                 do_insitu = false;
         }
 
-        if ((insitu_int > 0 || insitu_use_time) && nstep == 1)   // always do an in situ step after first step
+        if ((insitu_int > 0 || insitu_use_time) && nstep == insitu_start)   // always do an in situ step after first step
+        {
             do_insitu = true;
+        }
 
         if(do_insitu || doAnalysisNow())
         {
