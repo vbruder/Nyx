@@ -944,6 +944,8 @@ protected:
     static int load_balance_wgt_nmax;
     static int load_balance_strategy;
 
+    static amrex::Vector<int> n_vis_cycle_steps;
+
     bool FillPatchedOldState_ok;
 
     // permits hydro to be turned on and off for running pure rad problems:

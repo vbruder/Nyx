@@ -78,6 +78,7 @@ Real Nyx::new_a_time = -1.0;
 
 Vector<Real> Nyx::plot_z_values;
 Vector<Real> Nyx::analysis_z_values;
+Vector<int> Nyx::n_vis_cycle_steps;
 int Nyx::insitu_start = 0;
 int Nyx::insitu_int = 0;
 int Nyx::insitu_time = 0;
@@ -608,6 +609,13 @@ Nyx::read_params ()
     pp_insitu.query("time", insitu_time);
     pp_insitu.query("use_time", insitu_use_time);
     pp_insitu.query("node_split_factor", insitu_node_split_factor);
+
+    if (pp_insitu.contains("n_vis_cycle_steps"))
+    {
+        int num_cycle_steps = pp_insitu.countval("n_vis_cycle_steps");
+        n_vis_cycle_steps.resize(num_cycle_steps);
+        pp_insitu.queryarr("n_vis_cycle_steps", n_vis_cycle_steps, 0, num_cycle_steps);
+    }
 
     pp_nyx.query("load_balance_int",          load_balance_int);
     pp_nyx.query("load_balance_start_z",          load_balance_start_z);
@@ -1681,6 +1689,17 @@ Nyx::post_timestep (int iteration)
         if ((insitu_int > 0 || insitu_use_time) && nstep == insitu_start)   // always do an in situ step after first step
         {
             do_insitu = true;
+        }
+
+        // fixed step count list
+        if (n_vis_cycle_steps.size() > g_vis_cycle && nstep == n_vis_cycle_steps[g_vis_cycle])
+        {
+            auto wc_now = std::chrono::system_clock::now();
+            std::chrono::duration<double> elapsed = wc_now - g_wc_cycle_time;
+            double sim_time = elapsed.count();
+            std::cout << g_vis_cycle << ": +++++++ " << sim_time 
+                        << " " << n_vis_cycle_steps.at(g_vis_cycle) << std::endl;
+            do_insitu = true;            
         }
 
         if(do_insitu || doAnalysisNow())
